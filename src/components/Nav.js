@@ -6,8 +6,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
+import Logout from "../pages/Logout";
 
 const NavContent = styled.div`
   width: 100%;
@@ -193,6 +195,8 @@ const MsubmenuMember = styled(NavMember)`
 `;
 
 function Nav() {
+  const userState = useSelector(state => state.user);
+  console.log(userState)
   const [isHeight, setIsHeight] = useState();
   const SubMenuHeight = (e) => {
     const list = document.querySelectorAll(".sub_list")[e];
@@ -345,8 +349,8 @@ function Nav() {
           <NavMember>
             <ul>
               <li>
-                <NavLink to="/login">
-                  <FontAwesomeIcon icon={faLock}></FontAwesomeIcon>로그인
+                <NavLink to={userState.data?.nickName ? "/logout" : "login"}>
+                  <FontAwesomeIcon icon={faLock}></FontAwesomeIcon>{userState.data?.nickName ? "로그아웃" : "로그인"}
                 </NavLink>
               </li>
               <li>
@@ -375,9 +379,11 @@ function Nav() {
         <MsubmenuMember>
           <ul>
             <li>
-              <NavLink to="/login">
-                <FontAwesomeIcon icon={faLock}></FontAwesomeIcon>로그인
+              <NavLink to={userState.data?.nickName ? "/logout" : "login"}>
+                <FontAwesomeIcon icon={faLock}></FontAwesomeIcon>{userState.data?.nickName ? "로그아웃" : "로그인"}
+                {/* data 값이 없더라도 에러를 발생시키지 않게하기 위해서 ?를 쓴다. */}
               </NavLink>
+              {console.log(userState.data?.nickName)}
             </li>
             <li>
               <NavLink to="/member">
