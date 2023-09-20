@@ -205,6 +205,7 @@ function Member() {
         phoneNumber, //0919-1
         email
       }
+      // set은 내가 이름을 지정할 수 있다.
       await setDoc(doc(getFirestore(), "users",user.uid), userProfile);
       //0919-1
       sessionStorage.setItem("users",user.uid); //로그인 유지가 되어야하니깐

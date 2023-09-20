@@ -1,20 +1,27 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import GlobalStyle from "./components/GlobalStyle";
 import Main from "./pages/Main";
 import Aside from "./components/Aside";
 import { ThemeProvider } from "styled-components";
 import Nav from "./components/Nav";
-import store, { loggedIn } from "./store";
+import store, { logIn, loggedIn } from "./store";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import Member from "./pages/Member";
 import Login from "./pages/Login";
 import Example from "./example/Example";
 import Modal from "./components/Modal";
 import Logout from "./pages/Logout";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { collection, doc, getDoc, getFirestore } from "firebase/firestore";
 import Modify from "./pages/Modify";
 import FindEmail from "./pages/FindEmail";
+import Write from "./pages/Write";
+import Service from "./pages/Service";
+import Notice from "./pages/service/Notice";
+import Qna from "./pages/service/Qna";
+import Gallery from "./pages/service/Gallery";
+import Online from "./pages/service/Online";
+import View from "./pages/View";
 
 
 
@@ -83,6 +90,10 @@ function Inner(){
   const dispatch =useDispatch();
   const uid = sessionStorage.getItem("users");
   console.log(uid);
+  if(uid){
+    dispatch(logIn(uid));
+  }
+
   //0919-1
   //async를 사용하면 try,catch문을 반드시 써줘야함 국룰
   //try는 실패할수도있다 ~ catch는 오류가 뜨면~
@@ -110,6 +121,9 @@ function Inner(){
 
   // 대괄호 안에 변수값이 들어가면 변수가 바뀔떄마다 실행되는거고, 비어있다면 한번만 실행됨
 
+const [isModal, setIsModal] = useState(true);
+const navigate = useNavigate();
+
     return(
     <ThemeProvider theme={DarkMode}>
       	<GlobalStyle/>
@@ -124,6 +138,15 @@ function Inner(){
        	     <Route path="/modal" element={<Modal />}></Route>
        	     <Route path="/modify" element={<Modify />}></Route>
        	     <Route path="/findemail" element={<FindEmail />}></Route>
+       	     <Route path="/write/:board" element={<Write />}></Route>
+       	     <Route path="/view/:board/:view" element={<View />}></Route>
+       	     <Route path="/view/:board" element={isModal && <Modal error="유효하지 않은 경로입니다" onClose={()=>{navigate('/')}} />}></Route>
+             <Route path="/service" element={<Service />}>
+                <Route path="notice" element={<Notice />}></Route> 
+                <Route path="online" element={<Online />}></Route> 
+                <Route path="gallery" element={<Gallery />}></Route> 
+                <Route path="qna" element={<Qna />}></Route> 
+             </Route>
       	</Routes>
     	</ThemeProvider>
     )

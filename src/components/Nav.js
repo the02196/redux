@@ -170,7 +170,6 @@ function Nav({userState}) {
         const listLength = list.querySelectorAll("li").length;
         // console.log(listLength);
         const value = listLength * 43 +"px";
-        console.log(value);
         return setIsHeight(value);
         
     }
