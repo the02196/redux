@@ -1,11 +1,8 @@
 import React from 'react'
 
-
 function Online() {
   return (
-    <>
     <div>Online</div>
-    </>
   )
 }
 

@@ -3,154 +3,127 @@ import GlobalStyle from "./components/GlobalStyle";
 import Main from "./pages/Main";
 import Aside from "./components/Aside";
 import { ThemeProvider } from "styled-components";
+
 import Nav from "./components/Nav";
 import store, { logIn, loggedIn } from "./store";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import Member from "./pages/Member";
 import Login from "./pages/Login";
 import Example from "./example/Example";
-import Modal from "./components/Modal";
 import Logout from "./pages/Logout";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { collection, doc, getDoc, getFirestore } from "firebase/firestore";
 import Modify from "./pages/Modify";
-import FindEmail from "./pages/FindEmail";
+import Findemail from "./pages/Findemail";
 import Write from "./pages/Write";
 import Service from "./pages/Service";
 import Notice from "./pages/service/Notice";
+import Online from "./pages/service/Online";
 import Qna from "./pages/service/Qna";
 import Gallery from "./pages/service/Gallery";
-import Online from "./pages/service/Online";
 import View from "./pages/View";
-
-
+import { useState } from "react";
+import Modal from "./components/Modal";
+import NotPage from "./pages/NotPage";
 
 function App() {
-	// console.log(process.env)
-  // const light ={
-  //   colors:{
-  //     Primary :"orange",  
-  //     Secondary:"orangered",
-  //     BgColor:"#e9f1f6",
-  //     Color: "#000",
-  //     ContentBg :"#fff"
-  //   }
-  // }
 
-  // const dark ={
-  //   colors:{
-  //     Primary:"#272929",
-  //     Secondary:"#e9e9e9",
-  //     BgColor:"#333",
-  //     Color: "#e9e9e9",
-  //     ContentBg :"#272929"
-  //   }
-  // }
-  // const [themeConfig, setThemeConfig] = useState("light");
-  // const DarkMode = themeConfig === "light" ? light : dark ;
-  //여기서 light,dark는 위에 있는 함수의 컬러들을 받는것임
-  // const ThemeSelect = () =>{
-  //   setThemeConfig(themeConfig === "light" ? "dark" : "light")
-  // }
- 
   return (
-   <>
-    <Provider store={store}>
-    	<Inner />
-    </Provider>
-   </>
+    <>
+      <Provider store={store}>
+        <Inner />
+      </Provider>
+    </>
   );
 }
+
 function Inner(){
-
-  const light ={
-    colors:{
-      Primary :"orange",  
-      Secondary:"orangered",
-      BgColor:"#e9f1f6",
-      Color: "#000",
-      ContentBg :"#fff"
+  const light = {
+    colors: {
+      Primary : "orange",
+      Secondary : "orangered",
+      BgColor : "#e9f1f6",
+      Color : "#000",
+      ContentBg : "#fff"
     }
   }
-
-  const dark ={
-    colors:{
-      Primary:"#272929",
-      Secondary:"#e9e9e9",
-      BgColor:"#333",
-      Color: "#e9e9e9",
-      ContentBg :"#272929"
+  const dark = {
+    colors: {
+      Primary : "#272929",
+      Secondary : "#e9e9e9",
+      BgColor : "#333",
+      Color : "#e9e9e9",
+      ContentBg : "#272929"
     }
   }
+  
   const theme = useSelector(state => state.dark);
-  const DarkMode = theme === "light" ? light : dark ;
+  const DarkMode = theme === 'light' ? light : dark;
   const userState = useSelector(state => state.user);
-  console.log(userState);
+  console.log(userState)
 
-  const dispatch =useDispatch();
+  const dispatch = useDispatch();
   const uid = sessionStorage.getItem("users");
-  console.log(uid);
-  if(uid){
-    dispatch(logIn(uid));
-  }
-
-  //0919-1
-  //async를 사용하면 try,catch문을 반드시 써줘야함 국룰
-  //try는 실패할수도있다 ~ catch는 오류가 뜨면~
-
+  // console.log(uid)
+  
   useEffect(()=>{
-    const fetchUser = async () =>{
+    
+    if(uid){
+      dispatch(logIn(uid));
+    }
+
+    const fetchUser = async () => {
       if(!uid) return;
-      const userDoc = doc(collection(getFirestore(),"users"),uid);
-      console.log(userDoc)
+
+      const userDoc = doc(collection(getFirestore(),"users"), uid);
+      // console.log(userDoc)
+
       try{
         const docSnapshot = await getDoc(userDoc);
-        console.log(docSnapshot);
+        // console.log(docSnapshot)
         if(docSnapshot.exists()){
-          const userData= docSnapshot.data();
-          dispatch(loggedIn(userData)); 
-          //로그인에서 로그아웃으로 바껴야하니깐 데이터를 불러옴
+          const userData = docSnapshot.data();
+          dispatch(loggedIn(userData))
         }
-
       }catch(error){
         console.log(error)
       }
     }
     fetchUser();
-  }, [dispatch, uid])
+  },[dispatch, uid])
 
-  // 대괄호 안에 변수값이 들어가면 변수가 바뀔떄마다 실행되는거고, 비어있다면 한번만 실행됨
-
-const [isModal, setIsModal] = useState(true);
-const navigate = useNavigate();
-
-    return(
+  const [isModal, setIsModal] = useState(true);
+  const navigate = useNavigate()
+  
+  return (
     <ThemeProvider theme={DarkMode}>
-      	<GlobalStyle/>
-      	<Aside/> 
-        <Nav userState={userState}/>
-     	  <Routes>
-       	     <Route path="/" element={<Main />}></Route>
-       	     <Route path="/member" element={<Member />}></Route>
-       	     <Route path="/login" element={<Login />}></Route>
-       	     <Route path="/logout" element={<Logout />}></Route>
-       	     <Route path="/example" element={<Example />}></Route>
-       	     <Route path="/modal" element={<Modal />}></Route>
-       	     <Route path="/modify" element={<Modify />}></Route>
-       	     <Route path="/findemail" element={<FindEmail />}></Route>
-       	     <Route path="/write/:board" element={<Write />}></Route>
-       	     <Route path="/view/:board/:view" element={<View />}></Route>
-       	     <Route path="/view/:board" element={isModal && <Modal error="유효하지 않은 경로입니다" onClose={()=>{navigate('/')}} />}></Route>
-             <Route path="/service" element={<Service />}>
-                <Route path="notice" element={<Notice />}></Route> 
-                <Route path="online" element={<Online />}></Route> 
-                <Route path="gallery" element={<Gallery />}></Route> 
-                <Route path="qna" element={<Qna />}></Route> 
-             </Route>
-      	</Routes>
-    	</ThemeProvider>
-    )
-
+      <GlobalStyle/>
+      <Aside />
+      <Nav 
+      userState2={userState}
+      />
+      <Routes>
+        <Route path="/" element={<Main/>}></Route>
+        {/* <Route path="/" element={<Example/>}></Route> */}
+        <Route path="/member" element={<Member/>}></Route>
+        <Route path="/login" element={<Login/>}></Route>
+        <Route path="/logout" element={<Logout/>}></Route>
+        <Route path="/modify" element={<Member/>}></Route>
+        <Route path="/findemail" element={<Findemail/>}></Route>
+        <Route path="/write/:board" element={<Write/>}></Route>
+        <Route path="/view/:board/:view" element={<View/>}></Route>
+        <Route path="/edit/:board/:view" element={<Write/>}></Route>
+        <Route path="/service" element={<Service/>}>
+          <Route path="notice" element={<Notice/>}></Route>
+          <Route path="online" element={<Online/>}></Route>
+          <Route path="qna" element={<Qna/>}></Route>
+          <Route path="gallery" element={<Gallery/>}></Route>
+        </Route>
+        <Route path="/*" element={<NotPage/>}></Route>
+      </Routes>
+    </ThemeProvider>
+  )
 }
+
 
 export default App;

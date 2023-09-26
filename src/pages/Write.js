@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components';
 import Ckeditor from '../components/Ckeditor';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { useSelector } from 'react-redux';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
 
 
@@ -40,19 +41,6 @@ const Heading = styled.h3`
     top: -6px;
     left: 0;
     border-radius: 2px;
-  }
-`;
-
-const UploadButton = styled.button`
-  height: 30px;
-  background-color: #c6c6c6;
-  color: white;
-  border-radius: 5px;
-  padding: 2px 10px;
-  font-size: 13px;
-
-  &:hover {
-    background-color: #2ed090;
   }
 `;
 
@@ -96,59 +84,86 @@ const ContentLabel = styled.p`
 
 function Write() {
 
-const [txtTitle, setTxtTitle] = useState("");
-const {board} = useParams;
+  const [textTitle, setTextTitle] = useState("");
+  const {board, view} = useParams()
+  
+  const boards = ["notice", "online", "qna", "gallery"];
+  const [isModal, setIsModal] = useState(view ? false : true);
+  const navigate = useNavigate();
+  const memberProfile = useSelector(state => state.user);
+  
+  const [postData, setPostData] = useState(null);
+  const [message, setMessage] = useState("");
+  const uid = sessionStorage.getItem("users");
+  const [userUid, setUserUid] = useState(uid);
 
-const boards = ["notice", "online", "qna", "gallery"]
-const [isModal, setIsModal] = useState(true);
-const navigate = useNavigate();
-const memberProfile = useSelector(state => state.user);
+  useEffect(()=>{
+    if(board && view){
+      const fetchData = async () => {
+        const postRef = doc(getFirestore(), board, view);
+        const postSnapShot = await getDoc(postRef);
+        if(postSnapShot.exists()){
+          setIsModal(false)
+          setPostData(postSnapShot.data())
+          setTextTitle(postSnapShot.data().title)
+          if(uid !== postSnapShot.data().uid){
+            setIsModal(true);
+            setMessage("권한 없음")
+            return;
+          }
+        }else{
+          setIsModal(true)
+          setMessage("해당 문서가 존재하지 않습니다.")
+        }
+      }
+    fetchData()
+    }
+  },[board, view, uid])
 
-
-if(!memberProfile.loggedIn){
-  return(
+  if(!memberProfile.loggedIn){
+    return (
       <>
         {
-        isModal && <Modal error="로그인 이후 이용해주시길 바랍니다" onClose={()=>{setIsModal(false); navigate('/login');}}></Modal>
+          isModal && <Modal error="로그인 이후 이용해주시길 바랍니다." onClose={()=>{setIsModal(false); navigate('/login')}} />
         }
       </>
-  )
-}
-
-
-
-if(boards.includes(board)){
-  return(
-    <>
-      {
-        isModal && <Modal error="잘못된 게시판입니다!" onClose={()=>{setIsModal(false); navigate('/');}}></Modal>
-      }
-    </>
-  )
-}
-
-
+    )
+  }
+  if(!boards.includes(board)){
+    return (
+      <>
+        {
+          isModal && <Modal error="잘못된 게시판입니다!" onClose={()=>{setIsModal(false); navigate('/')}} />
+        }
+      </>
+    )
+  }
 
   return (
-    <Container>
-      <InnerContainer>
-        <Header>
-          <Heading>글쓰기</Heading>
-          <UploadButton>등록하기</UploadButton>
-        </Header>
-        <ContentWrapper>
-          <ContentInner>
-            <Title>제목</Title>
-            <TextInput type="text" onChange={(e)=>{setTxtTitle(e.target.value)}} />
-          </ContentInner>
-          <ContentInputWrapper>
-            <ContentLabel>내용</ContentLabel>
-            <Ckeditor title={txtTitle} />
-            {/* 제목의 값이 Ckeditor로 넘어가야 한다! */}
-          </ContentInputWrapper>
-        </ContentWrapper>
-      </InnerContainer>
-    </Container>
+    <>
+      {
+        isModal && view && <Modal error={message} onClose={()=>{setIsModal(false); navigate(`/service/${board}`)}} />
+      }
+      <Container>
+        <InnerContainer>
+          <Header>
+            <Heading>{board && view ? "글수정" : "글쓰기"}</Heading>
+            
+          </Header>
+
+          <ContentWrapper>
+            <ContentInner>
+              <Title>제목</Title>
+              <TextInput defaultValue={postData && postData.title} type="text" onChange={(e)=>{setTextTitle(e.target.value)}} />
+            </ContentInner>
+            <ContentInputWrapper>
+              <ContentLabel>내용</ContentLabel>
+              <Ckeditor postData={postData} title={textTitle}/>
+            </ContentInputWrapper>
+          </ContentWrapper>
+        </InnerContainer>
+      </Container>
+    </>
   );
 }
 
